@@ -14,6 +14,8 @@
 #define DEBUG_CORE_LV1(...)          DebugFormat(1,__VA_ARGS__);
 #define DEBUG_INFO(...)              DebugFormat(2,__VA_ARGS__);
 #define DEBUG_INFO_LV1(...)          DebugFormat(2,__VA_ARGS__);
+#define DEBUG_DATE(...)             DebugFormat(3,__VA_ARGS__);
+#define DEBUG_DATE_LV1(...)         DebugFormat(3,__VA_ARGS__);
 
 
 #ifndef DEBUG_CORE

@@ -26,4 +26,7 @@ void CoreSetup();
 void CoreLoop();
 void CoreRegister(coreCallback_f callback);
 
+// Date API
+void DateSetup();
+
 #endif // PROTOTYPE_H
