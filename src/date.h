@@ -3,9 +3,10 @@
 #include <Arduino.h>
 extern "C" {
 #include <user_interface.h>
+#include <sntp.h>
 }
 #include <Ticker.h>
-#include <time.h>    
+// #include <time.h>    
 
 
 struct date_t
@@ -28,6 +29,7 @@ struct date_t
   uint32_t upTime = 0;
   uint8_t ntpForceTimer;
   uint8_t lastMinute;
+  uint8_t ntpInitDelay =0;
   uint8_t lastDayOfWeek = 0xFF;  
 }_date;
 

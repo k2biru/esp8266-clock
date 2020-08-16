@@ -22,44 +22,46 @@ void _dateCoreCallback(coreCallbackCommand_e command){
 }
 
 void _dateTick(){
+    uint32_t tmpTime = 0;
     _date.upTime++;
-    
-    if(!_date.flagInitTime) return; // not yet
-
-    
-    if (!_dateIsSNTPValid(time(NULL))){
-        _dateSNTPInit();
-        for(uint8_t i=0; i<10; i++)  {
-            delay(50);
-            _date.time = time(NULL);
-        }    
+    if(!_date.ntpOk || _date.ntpForceSync){
+        tmpTime = sntp_get_current_timestamp();//(NULL);
+        if(_dateIsSNTPValid(tmpTime)){
+            _date.ntpLastSync = tmpTime;
+            _date.ntpForceSync = 0;
+            _date.time = tmpTime;
+            _date.ntpOk = 1;
+            DEBUG_DATE_LV1(PSTR("SYNC"));
+        }
     } else {
         _date.time ++;
-        DEBUG_DATE(PSTR("invalid time"));
+        if(_date.time-_date.ntpLastSync >= 60*60*2){ // 2 hour resync
+            _date.ntpForceSync = 1;
+        }
     }
-    DEBUG_DATE(PSTR("uptame %i, date %i"),_date.upTime,_date.time);
+    DEBUG_DATE(PSTR("uptime %i, date %i, tmp %i"),_date.upTime,_date.time,tmpTime);
 }
 
 bool _dateIsSNTPValid(const time_t time){
   tm today;
   gmtime_r(&time, &today);
-  if (today.tm_year < (2020 - 1900))  return false;// tahun kurang dari 2017
-  else return true;
+  return !(today.tm_year < (2020 - 1900)); 
 }
 
 void _dateSNTPInit(){
-  char server0 [16] ;
-  char server1 [18] ;
-  char server2 [18] ;
-  strcpy_P(server0, PSTR("id.pool.ntp.org"));
-  strcpy_P(server1, PSTR("0.id.pool.ntp.org"));
-  strcpy_P(server2, PSTR("1.id.pool.ntp.org"));
-  configTime(0, 0, server0,server1,server2);
-  _date.flagInitTime = 1;
+  sntp_setservername(0,"id.pool.ntp.org" );
+  sntp_setservername(1,"0.id.pool.ntp.org" );
+  sntp_setservername(2,"1.id.pool.ntp.org" );
+  sntp_stop();  
+  sntp_set_timezone(0);      // UTC time
+  sntp_init();
+  _date.time = 0;
+//   _date.flagInitTime = 1;
+//   _date.ntpInitDelay = 5;
   DEBUG_DATE(PSTR("Init SNTP"));
+  _dateTicker.attach(1, _dateTick);
 }
 void _dateInit(){
-    _dateSNTPInit();
 }
 
 void _dateLoop(){
@@ -69,5 +71,6 @@ void _dateLoop(){
 
 void DateSetup(){
     CoreRegister(_dateCoreCallback);
-    _dateTicker.attach(1, _dateTick);
+    
+    _dateSNTPInit();
 }
