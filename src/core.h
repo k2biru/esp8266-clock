@@ -1,11 +1,14 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "prototype.h"
+#include "config.h"
 #include <Arduino.h>
 #include <DNSServer.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h>         //https://github.com/tzapu/WiFiManager
 
 struct _core_t{
     union {
@@ -20,6 +23,12 @@ struct _core_t{
 	// uint32_t timer10minute;
 } _core;
 
+AsyncWebServer server(80);
+DNSServer dns;
+std::vector<coreCallback_f> _coreCallback;
+
+void _coreCallbackCommand(coreCallbackCommand_e command);
+void _coreWiFiConfig();
 void _coreInit();
 
 #endif //CORE_H
