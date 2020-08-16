@@ -2,13 +2,14 @@
 #include "prototype.h"
 #include "config.h"
 
-
-std::vector<coreCallback_f> _coreCallback;
-
-
+extern "C" {
+#include "lwip/opt.h"
+#include "lwip/err.h"
+#include "lwip/dns.h"
+}
 
 void _coreCallbackCommand(coreCallbackCommand_e command){
-	// DEBUG_CORE(PSTR("cb Command %i"), (uint8_t) command);
+	if (command != CORE_TASK_LOOP)    DEBUG_CORE(PSTR("cb Command %i"), (uint8_t) command);
 	for (uint8_t i = 0; i < _coreCallback.size(); i++) {
     	(_coreCallback[i])(command);
     }
@@ -18,18 +19,23 @@ void _coreCallbackCommand(coreCallbackCommand_e command){
 	}
 }
 
+void _coreWiFiConfig(){
+    AsyncWiFiManager wifiManager(&server,&dns);
+    wifiManager.setTimeout(60*3);
+    wifiManager.setDebugOutput(0);
+    if(!wifiManager.autoConnect("AutoConnectAP")) {
+        DEBUG_CORE(PSTR("WIFI_TIMEOUT"))
+        delay(3000);
+        //reset and try again, or maybe put it to deep sleep
+        ESP.reset();
+        delay(5000);
+    } 
+}
+
 void _coreInit(){
-    WiFiManager wifiManager;
-    wifiManager.setTimeout(180);
-  wifiManager.setDebugOutput(0);
   DEBUG_CORE(PSTR("WIFI_INIT"))
-  if(!wifiManager.autoConnect("ESP CLOCK")) {
-    DEBUG_CORE(PSTR("WIFI_TIMEOUT"))
-    delay(3000);
-    //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
-    delay(5000);
-  } 
+  _coreWiFiConfig();
+  dns_setserver(0,IPAddress(1,1,1,1));
 
 }
 
@@ -39,15 +45,12 @@ void CoreRegister(coreCallback_f callback) {
 }
 
 void CoreSetup(){
-
-    
     DEBUG_CORE(PSTR("Ready"));
     if(!_core.taskInit){
         _coreCallbackCommand(CORE_TASK_INIT);
         _core.taskInit = 1;
     }
     DEBUG_CORE(PSTR("Init OK"));
-
 }
 
 void CoreLoop(){
