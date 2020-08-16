@@ -10,6 +10,7 @@ void setup() {
   while (!Serial){
     delay(100);
   }
+  DateSetup();
   CoreSetup();
   // put your setup code here, to run once:
 }

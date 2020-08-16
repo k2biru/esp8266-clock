@@ -2,8 +2,14 @@
 #include "prototype.h"
 #include "config.h"
 
+extern "C" {
+#include "lwip/opt.h"
+#include "lwip/err.h"
+#include "lwip/dns.h"
+}
+
 void _coreCallbackCommand(coreCallbackCommand_e command){
-	// DEBUG_CORE(PSTR("cb Command %i"), (uint8_t) command);
+	if (command != CORE_TASK_LOOP)    DEBUG_CORE(PSTR("cb Command %i"), (uint8_t) command);
 	for (uint8_t i = 0; i < _coreCallback.size(); i++) {
     	(_coreCallback[i])(command);
     }
@@ -29,6 +35,8 @@ void _coreWiFiConfig(){
 void _coreInit(){
   DEBUG_CORE(PSTR("WIFI_INIT"))
   _coreWiFiConfig();
+  dns_setserver(0,IPAddress(1,1,1,1));
+
 }
 
 void CoreRegister(coreCallback_f callback) {

@@ -14,7 +14,11 @@ void DebugFormat(uint8_t data, PGM_P format_P, ...) {
         case 2:
             strcpy_P(prefix,PSTR("INFO"));
             break;
+        case 3:
+            strcpy_P(prefix,PSTR("DATE"));
+            break;
         default :
+            strcpy_P(prefix,PSTR("----"));
             break;
     }
 #endif
